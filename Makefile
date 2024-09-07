@@ -1,5 +1,5 @@
-CC_FLAGS= -Wall -I.
-LD_FLAGS= -Wall -L./ 
+CC_FLAGS = -Wall -g -O0 -I. 
+LD_FLAGS = -Wall -g -O0 -L./
 
 
 all: libcalc test client server
