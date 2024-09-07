@@ -41,9 +41,6 @@ bool send_message(int clientSocket, const char* message) {
 }
 char* do_magic(char* buf){
 
-
-
-  
   char delim[]=" ";
   char *operation = strtok(buf, delim); 
   char *value1_str= strtok(NULL, delim);
