@@ -48,6 +48,6 @@ int main(int argc, char *argv[]){
 #ifdef DEBUG 
   printf("Hhet %s, and port %d.\n",Desthost,port);
 #endif
-
+  close(clientSocket);
   return connectResult;
 }
