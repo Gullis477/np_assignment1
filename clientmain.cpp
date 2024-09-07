@@ -8,7 +8,7 @@
 #include <sys/socket.h>
 #include <unistd.h>
 #include <arpa/inet.h>
-
+#include <sstream>
 /* You will to add includes here */
 
 // Enable if you want debugging to be printed, see examble below.
@@ -39,35 +39,76 @@ bool send_message(int clientSocket, const char* message) {
         return true;
     }
 }
-void do_magic(char* buf){
+char* do_magic(char* buf){
+
+
+
+  
+  char delim[]=" ";
+  char *operation = strtok(buf, delim); 
+  char *value1_str= strtok(NULL, delim);
+  char *value2_str = strtok(NULL, "\n");
+  int result;
+  double result_double;
+  static char result_str[20];
+  char* float_format = "%8.8g";
+  char* int_format = "%d";
 
   if (strstr(buf, "fdiv") != NULL) {
-      printf("fdiv\n");
+    double value1 = atof(value1_str);
+    double value2 = atof(value2_str);
+    result_double = value1 / value2;
+    sprintf(result_str, float_format, result_double);
     }
   else   if (strstr(buf, "fadd") != NULL) {
-      printf("fadd\n");
+    double value1 = atof(value1_str);
+    double value2 = atof(value2_str);
+    result_double = value1 + value2;
+    sprintf(result_str, float_format, result_double);
     }
   else   if (strstr(buf, "fmul") != NULL) {
-      printf("fmul\n");
+    double value1 = atof(value1_str);
+    double value2 = atof(value2_str);
+    result_double = value1 * value2;
+    sprintf(result_str, float_format, result_double);
     }
   else   if (strstr(buf, "fsub") != NULL) {
-      printf("fsub\n");
+    double value1 = atof(value1_str);
+    double value2 = atof(value2_str);
+    result_double= value1 - value2;
+    sprintf(result_str, float_format, result_double);
     }
   else   if (strstr(buf, "fdiv") != NULL) {
-      printf("fdiv\n");
+    double value1 = atof(value1_str);
+    double value2 = atof(value2_str);
+    result_double = value1 / value2;
+    sprintf(result_str, float_format, result_double);
     }
   else   if (strstr(buf, "add") != NULL) {
-      printf("add\n");
+    int value1 = atoi(value1_str);
+    int value2 = atoi(value2_str);
+    result = value1 + value2;
+    sprintf(result_str, int_format, result);
     }
   else   if (strstr(buf, "div") != NULL) {
-      printf("div\n");
+    int value1 = atoi(value1_str);
+    int value2 = atoi(value2_str);
+    result = value1 / value2;
+    sprintf(result_str, int_format, result);
     }
   else   if (strstr(buf, "mul") != NULL) {
-      printf("mul\n");
+    int value1 = atoi(value1_str);
+    int value2 = atoi(value2_str);
+    result = value1 * value2;
+    sprintf(result_str, int_format, result);
     }
   else   if (strstr(buf, "sub") != NULL) {
-      printf("sub\n");
+    int value1 = atoi(value1_str);
+    int value2 = atoi(value2_str);
+    result = value1 - value2;
+    sprintf(result_str, int_format, result);
     }
+  return result_str;
 }
 
 int main(int argc, char *argv[]){
@@ -114,7 +155,11 @@ int main(int argc, char *argv[]){
 
   memset(buffer, 0, sizeof(buffer));
   recv(clientSocket, buffer, sizeof(buffer), 0);
-  do_magic(buffer);
+
+  
+  char* result = do_magic(buffer);
+  send_message(clientSocket, result);
+  
 
 #ifdef DEBUG 
   printf("Hhet %s, and port %d.\n",Desthost,port);
