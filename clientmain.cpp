@@ -19,6 +19,18 @@
 // Included to get the support library
 #include <calcLib.h>
 
+
+
+bool check_protocol(char* buf){
+
+  const char* protocol = "TEXT TCP 1.0";
+
+  if (strstr(buf, protocol) != NULL) {
+    return true;
+  }
+  return false;
+}
+
 int main(int argc, char *argv[]){
   
   /*
@@ -44,6 +56,19 @@ int main(int argc, char *argv[]){
   serverAddress.sin_port = htons(port); 
   inet_pton(AF_INET, Desthost, &serverAddress.sin_addr); 
   int connectResult = connect(clientSocket, (struct sockaddr*)&serverAddress, sizeof(serverAddress));
+
+
+
+  char buffer[1024];
+  memset(buffer, 0, sizeof(buffer));
+  ssize_t bytesReceived = recv(clientSocket, buffer, sizeof(buffer), 0);
+  if( !check_protocol(buffer))
+  {
+    printf("ERROR: MISSMATCH PROTOCOL\n");
+    close(clientSocket);
+  }
+
+
 
 #ifdef DEBUG 
   printf("Hhet %s, and port %d.\n",Desthost,port);
