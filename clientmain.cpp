@@ -85,7 +85,6 @@ return result;
 
 
 int main(int argc, char *argv[]){
-  printf("./client %s\n",argv[1]);
   /*
     Read first input, assumes <ip>:<port> syntax, convert into one string (Desthost) and one integer (port). 
      Atm, works only on dotted notation, i.e. IPv4 and DNS. IPv6 does not work if its using ':'. 
@@ -96,49 +95,52 @@ int main(int argc, char *argv[]){
   // *Desthost now points to a sting holding whatever came before the delimiter, ':'.
   // *Dstport points to whatever string came after the delimiter. 
 
-
-
-
-
   int port=atoi(Destport);
 
 
+
+  //create socket
   int clientSocket = socket(AF_INET, SOCK_STREAM, 0);
+  if (clientSocket < 0) {
+    printf("ERROR: Socket creation failed.\n");
+    return -1;
+}
   sockaddr_in serverAddress; 
   serverAddress.sin_family = AF_INET; 
   serverAddress.sin_port = htons(port); 
   inet_pton(AF_INET, Desthost, &serverAddress.sin_addr); 
+
+  //connect to server
   if (connect(clientSocket, (struct sockaddr*)&serverAddress, sizeof(serverAddress)) < 0) {
-      printf("ERROR: Cannot connect to %s:%d.\n",Desthost,port);
+      printf("ERROR: CANT CONNECT TO  %s:%d.\n",Desthost,port);
       return -1;
   }
 
-
+  //receive and check protocol
   char buffer[1024];
   memset(buffer, 0, sizeof(buffer));
   recv(clientSocket, buffer, sizeof(buffer), 0);
   if(check_protocol(buffer)){
+    // send ok
     send_message(clientSocket,  "OK\n");
-    printf( "OK\n");
   }
   else{
-    printf("Host %s, and port %d.\n",Desthost,port);
     printf("ERROR: MISSMATCH PROTOCOL\n");
     close(clientSocket);
     return -1;
   }
 
-
+  // receive operation
   memset(buffer, 0, sizeof(buffer));
   recv(clientSocket, buffer, sizeof(buffer), 0);
 
-  
+  // parse command
   char *op = strtok(buffer, " "); 
   char *v1= strtok(NULL, " ");
   char *v2 = strtok(NULL, "\n");
   char result_str[20];
-  printf("%s %s %s\n",op, v1,v2);
 
+  //  do work
   if (op[0] == 'f') {
     float result = handle_float(op,v1,v2);
     sprintf(result_str,"%8.8g\n",result);
@@ -148,8 +150,11 @@ int main(int argc, char *argv[]){
     sprintf(result_str,"%d\n",result);
   }
   printf(result_str);
+
+  //send back results
   send_message(clientSocket, result_str);
 
+  // get response
   memset(buffer, 0, sizeof(buffer));
   recv(clientSocket, buffer, sizeof(buffer), 0);
   printf("%s",buffer);
