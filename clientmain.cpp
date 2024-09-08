@@ -122,6 +122,7 @@ int main(int argc, char *argv[]){
     printf( "OK\n");
   }
   else{
+    printf("Host %s, and port %d.\n",Desthost,port);
     printf("ERROR: MISSMATCH PROTOCOL\n");
     close(clientSocket);
     return -1;
