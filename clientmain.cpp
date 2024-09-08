@@ -39,77 +39,53 @@ bool send_message(int clientSocket, const char* message) {
         return true;
     }
 }
-char* do_magic(char* buf){
 
-  char delim[]=" ";
-  char *operation = strtok(buf, delim); 
-  char *value1_str= strtok(NULL, delim);
-  char *value2_str = strtok(NULL, "\n");
-  int result;
-  double result_double;
-  static char result_str[20];
-  char* float_format = "%8.8g";
-  char* int_format = "%d";
+float handle_float(char* op, char* v1, char* v2) {
+    float num1 = atof(v1);
+    float num2 = atof(v2);
+    float result;
 
-  if (strstr(buf, "fdiv") != NULL) {
-    double value1 = atof(value1_str);
-    double value2 = atof(value2_str);
-    result_double = value1 / value2;
-    sprintf(result_str, float_format, result_double);
+    if (strcmp(op, "fadd") == 0) {
+        result = num1 + num2;
+
+    } else if (strcmp(op, "fsub") == 0) {
+        result = num1 - num2;
+
+    } else if (strcmp(op, "fmul") == 0) {
+        result = num1 * num2;
+
+    } else if (strcmp(op, "fdiv") == 0) {
+        result = num1 / num2;
     }
-  else   if (strstr(buf, "fadd") != NULL) {
-    double value1 = atof(value1_str);
-    double value2 = atof(value2_str);
-    result_double = value1 + value2;
-    sprintf(result_str, float_format, result_double);
-    }
-  else   if (strstr(buf, "fmul") != NULL) {
-    double value1 = atof(value1_str);
-    double value2 = atof(value2_str);
-    result_double = value1 * value2;
-    sprintf(result_str, float_format, result_double);
-    }
-  else   if (strstr(buf, "fsub") != NULL) {
-    double value1 = atof(value1_str);
-    double value2 = atof(value2_str);
-    result_double= value1 - value2;
-    sprintf(result_str, float_format, result_double);
-    }
-  else   if (strstr(buf, "fdiv") != NULL) {
-    double value1 = atof(value1_str);
-    double value2 = atof(value2_str);
-    result_double = value1 / value2;
-    sprintf(result_str, float_format, result_double);
-    }
-  else   if (strstr(buf, "add") != NULL) {
-    int value1 = atoi(value1_str);
-    int value2 = atoi(value2_str);
-    result = value1 + value2;
-    sprintf(result_str, int_format, result);
-    }
-  else   if (strstr(buf, "div") != NULL) {
-    int value1 = atoi(value1_str);
-    int value2 = atoi(value2_str);
-    result = value1 / value2;
-    sprintf(result_str, int_format, result);
-    }
-  else   if (strstr(buf, "mul") != NULL) {
-    int value1 = atoi(value1_str);
-    int value2 = atoi(value2_str);
-    result = value1 * value2;
-    sprintf(result_str, int_format, result);
-    }
-  else   if (strstr(buf, "sub") != NULL) {
-    int value1 = atoi(value1_str);
-    int value2 = atoi(value2_str);
-    result = value1 - value2;
-    sprintf(result_str, int_format, result);
-    }
-  return result_str;
+   return result;
 }
 
+int handle_int(char* op, char* v1, char* v2) {
+    int num1 = atoi(v1);
+    int num2 = atoi(v2);
+    int result;
+
+    if (strcmp(op, "add") == 0) {
+        result = num1 + num2;
+
+    } else if (strcmp(op, "sub") == 0) {
+        result = num1 - num2;
+
+    } else if (strcmp(op, "mul") == 0) {
+        result = num1 * num2;
+
+    } else if (strcmp(op, "div") == 0) {
+        result = num1 / num2;
+    }
+return result;
+}
+
+
+
+
+
 int main(int argc, char *argv[]){
-  
+  printf("./client %s\n",argv[1]);
   /*
     Read first input, assumes <ip>:<port> syntax, convert into one string (Desthost) and one integer (port). 
      Atm, works only on dotted notation, i.e. IPv4 and DNS. IPv6 does not work if its using ':'. 
@@ -140,9 +116,10 @@ int main(int argc, char *argv[]){
 
   char buffer[1024];
   memset(buffer, 0, sizeof(buffer));
-  ssize_t bytesReceived = recv(clientSocket, buffer, sizeof(buffer), 0);
+  recv(clientSocket, buffer, sizeof(buffer), 0);
   if(check_protocol(buffer)){
-    send_message(clientSocket, "OK\n");
+    send_message(clientSocket,  "OK\n");
+    printf( "OK\n");
   }
   else{
     printf("ERROR: MISSMATCH PROTOCOL\n");
@@ -154,10 +131,27 @@ int main(int argc, char *argv[]){
   recv(clientSocket, buffer, sizeof(buffer), 0);
 
   
-  char* result = do_magic(buffer);
-  send_message(clientSocket, result);
-  
+  char *op = strtok(buffer, " "); 
+  char *v1= strtok(NULL, " ");
+  char *v2 = strtok(NULL, "\n");
+  char result_str[20];
+  printf("%s %s %s\n",op, v1,v2);
 
+  if (op[0] == 'f') {
+    float result = handle_float(op,v1,v2);
+    sprintf(result_str,"%8.8g\n",result);
+
+  } else {
+    int result = handle_int(op,v1,v2);
+    sprintf(result_str,"%d\n",result);
+  }
+  printf(result_str);
+  send_message(clientSocket, result_str);
+
+  memset(buffer, 0, sizeof(buffer));
+  recv(clientSocket, buffer, sizeof(buffer), 0);
+  printf("%s",buffer);
+  
 #ifdef DEBUG 
   printf("Host %s, and port %d.\n",Desthost,port);
 #endif
