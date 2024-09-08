@@ -124,6 +124,7 @@ int main(int argc, char *argv[]){
   else{
     printf("ERROR: MISSMATCH PROTOCOL\n");
     close(clientSocket);
+    return -1;
   }
 
 
