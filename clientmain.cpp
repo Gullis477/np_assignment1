@@ -87,23 +87,20 @@ return result;
 }
 
 
-
+void remove_newline(char *str) {
+    size_t len = strlen(str);
+    if (len > 0 && str[len - 1] == '\n') {
+        str[len - 1] = '\0';
+    }
+}
 
 
 int main(int argc, char *argv[]){
-  /*
-    Read first input, assumes <ip>:<port> syntax, convert into one string (Desthost) and one integer (port). 
-     Atm, works only on dotted notation, i.e. IPv4 and DNS. IPv6 does not work if its using ':'. 
-  */
+
   char delim[]=":";
   char *Desthost=strtok(argv[1],delim);
   char *Destport=strtok(NULL,delim);
-  // *Desthost now points to a sting holding whatever came before the delimiter, ':'.
-  // *Dstport points to whatever string came after the delimiter. 
-
   int port=atoi(Destport);
-
-
 
   //create socket
   int clientSocket = socket(AF_INET, SOCK_STREAM, 0);
@@ -129,11 +126,12 @@ int main(int argc, char *argv[]){
   if(check_protocol(buffer)){
     // send ok
     send_message(clientSocket,  "OK\n");
+    printf("OK\n");
   }
   else{
     printf("ERROR: MISSMATCH PROTOCOL\n");
     close(clientSocket);
-    return -1;
+    return 0;
   }
 
   // receive operation
@@ -144,6 +142,7 @@ int main(int argc, char *argv[]){
   char *op = strtok(buffer, " "); 
   char *v1= strtok(NULL, " ");
   char *v2 = strtok(NULL, "\n");
+  printf("%s %s %s\n", op,v1,v2);
   char result_str[20];
 
   //  do work
@@ -155,7 +154,6 @@ int main(int argc, char *argv[]){
     int result = handle_int(op,v1,v2);
     sprintf(result_str,"%d\n",result);
   }
-  printf(result_str);
 
   //send back results
   send_message(clientSocket, result_str);
@@ -163,7 +161,10 @@ int main(int argc, char *argv[]){
   // get response
   memset(buffer, 0, sizeof(buffer));
   recv(clientSocket, buffer, sizeof(buffer), 0);
-  printf("%s",buffer);
+
+  remove_newline(buffer);
+  remove_newline(result_str);
+  printf("%s (myresult=%s)\n",buffer,result_str);
   
 #ifdef DEBUG 
   printf("Host %s, and port %d.\n",Desthost,port);
