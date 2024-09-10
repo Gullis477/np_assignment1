@@ -22,13 +22,19 @@
 
 
 bool check_protocol(char* buf){
-
   const char* protocol = "TEXT TCP 1.0";
+  bool flag = false;
 
-  if (strstr(buf, protocol) != NULL) {
-    return true;
+  char* sub_buf = strtok(buf, "\n");
+
+  while (sub_buf != NULL){
+    if (strcmp(sub_buf, protocol) == 0){
+      flag = true;
+    }
+    sub_buf = strtok(NULL,"\n");
   }
-  return false;
+
+  return flag;
 }
 
 bool send_message(int clientSocket, const char* message) {
