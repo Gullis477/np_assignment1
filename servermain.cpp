@@ -30,7 +30,7 @@ int get_operation(char* buf){
 
 
 
-  if(op[0]='f'){ /* We got a floating op  */
+  if(op[0]=='f'){ /* We got a floating op  */
     fv1 = randomFloat();
     fv2 = randomFloat();
     sprintf(buf, "%s %8.8g %8.8g\n",op,fv1,fv2);
@@ -74,7 +74,7 @@ int main(int argc, char *argv[]){
 
 
   int serverSocket;
-  
+  int reuse = 1;
 
 
   for (p = res; p != NULL; p = p->ai_next) {
@@ -82,6 +82,12 @@ int main(int argc, char *argv[]){
     if (serverSocket < 0) {
       printf("ERROR: Socket creation failed.\n");
       continue;
+    }
+
+    if (setsockopt(serverSocket, SOL_SOCKET, SO_REUSEADDR, &reuse, sizeof(reuse)) < 0) {
+        printf("setsockopt(SO_REUSEADDR) failed\n");
+        close(serverSocket);
+        return 1;
     }
 
     if (bind(serverSocket, p->ai_addr, p->ai_addrlen) < 0) {
@@ -114,9 +120,11 @@ int main(int argc, char *argv[]){
 
 
   memset(buffer, 0, sizeof(buffer));
-  recv(new_socket, buffer, sizeof(buffer), 0);
-  printf("%s == OK",buffer);
-  if (strcmp(buffer, "OK") != 0) {
+  recv(new_socket, &buffer, sizeof(buffer), 0);
+  const char* ok_msg = "OK\n";
+  printf("---------\n%s ---------\n",buffer);
+  printf("---------\n%s ---------\n",ok_msg);
+  if (strcmp(buffer, ok_msg) != 0) {
       printf("Client not supporting protocoll\n");
       return -1;
   }
